@@ -24,30 +24,46 @@ $view7="";
 $stmt = $pdo->prepare("SELECT * FROM gs_item_table");
 $status = $stmt->execute();//実行
 // $result = $stmt->fetch();//結果取り出し
+
+//会員属性でのだし分け　左上属性表示、右メニュー
 if($family == 1){
     $view2 .= '<div id="itemAdd">追加する</div>';
-    $view4 .= '<tr>\
-    <td colspan="2" class="Itemcenter">\
-    <input class="Itemcenter" id="btn-addItem" type="submit" value="更新する"></td></tr>';
-    $view5 .= '<img src="file/spacer.gif" width="400"><input type="file" class="inpitImage" accept="image/*" name="up_file" required="required">';
     $view6 .= '管理者';
-    $view8 .= '<tr>\
-    <td colspan="2" class="Itemcenter">\
-    <input class="Itemcenter" id="btn-addItem" type="submit" value="追加する"></td></tr>';
 }
-
 if($grade == 3){
     $view3 .= '<a href="member.php"><div id="invite">管理者</div></a>';
     $view6 .= 'スーパー管理者';
 }
+if($family == NULL){
+    $view6 .= '一般会員';
+}
+//会員属性でのだし分け　item更新カード内ボタン
+if($family){
+    $view4 .= '<tr>\
+    <td colspan="2" class="Itemcenter">\
+    <input class="Itemcenter" id="btn-addItem" type="submit" value="更新する"></td></tr>';
+    $view5 .= '<img src="file/spacer.gif" width="400"><input type="file" class="inpitImage" accept="image/*" name="up_file" required="required">';
+    $view8 .='<form method="post" action="updata.php" enctype="multipart/form-data">';
+    $view9 .='<input type="submit" class="close" value="×"></form>';
+    $view10 .='<input type ="hidden" name="delete" value="delete">';
+}else{
+    $view4 .= '<tr style="display:none;">\
+    <td colspan="2" class="Itemcenter">\
+    <input class="Itemcenter" id="btn-addItem" type="submit" value="更新する"></td></tr>';
+    $view5 .= '<img src="file/spacer.gif" width="400">';
+    $view8 .='';
+    $view9 .='';
+    $view10 .='';
+}
 
+//itemへデータ引継ぎ
 if($status==false){
     $error = $stmt->errorInfo();
     exit("QueryError:".$error[2]);//処理を止めてエラーの文字列が出る
  }else{
     while($result = $stmt->fetch(PDO::FETCH_ASSOC)){
         $view .= '<div class="grid" id="'.$result["id"].'">';
-        $view .= '<div class="close">×</div>';
+        $view .= $view8;
         $view .= '<img src="' .$result["image"] .'"class="imgId" width="500" ';
         $view .= ' data0="'.$result["id"].'"';
         $view .= ' data1="'.$result["title"].'"';
@@ -58,16 +74,21 @@ if($status==false){
         $view .= ' data6="'.$result["secretmesto"].'"';
         $view .= ' data7="'.$result["secretmes"].'"';
         $view .= ' data8="'.$result["inputdate"].'"';
+        $view .= ' data9="itemupdate"';
         $view .= '>';
         $view .= '<p class="itamTitle">' .$result["title"] .'</p>';
+        $view .= '<input type ="hidden" name="id" value="'.$result["id"].'">';
+        $view .= $view10;
+        $view .= $view9;
         $view .= '</div>';
     }
 }
 
 
-
+//データ更新用カード
 $view7 .= '<div id="itemUpdata">';
-$view7 .= '<form method="post" action="iteminsert.php" enctype="multipart/form-data">';
+$view7 .= $view8;
+// $view7 .= '<form method="post" action="iteminsert.php" enctype="multipart/form-data">';
 $view7 .= '<div class="bg_item"></div>';
 $view7 .= '<div id="modal_wrapper">';
 $view7 .= '<div class="photo"></div>';
@@ -115,7 +136,6 @@ $view7 .= '</div>';
 $view7 .= '</div>';
 $view7 .= '</form>';
 $view7 .= '</div>';
-
 ?>
 
 <!DOCTYPE html>
@@ -172,6 +192,8 @@ $view7 .= '</div>';
             $("#wrapper input[name=place]").val($(this).attr('data3'));
             $("#wrapper textarea[name=comment]").val($(this).attr('data5'));
             $(".image-box").children('img').attr('src', $(this).attr('data4'));
+            // $("#modal_wrapper").prepend('<?php echo "$view8" ?>');
+            $(".bg_item").append('<input type="hidden" name="imageUpdata" value="'+$(this).attr('data4')+'"><input type ="hidden" name="id" value="'+$(this).attr('data0')+'">');
             $(".inpitImage").css('display','none');
             $(".inpitImage").removeAttr('required');
             $(".closeBtn").on('click',function(){
